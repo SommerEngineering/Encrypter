@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Encrypter</name>
+    </assembly>
+    <members>
+        <member name="M:Encrypter.CryptoProcessor.EncryptString(System.String,System.String)">
+            <summary>
+            Encrypts a string by means of AES. The result gets base64 encoded.
+            Due to the necessary millions of SHA512 iterations, the methods runs at least several seconds in the year 2020 (approx. 5-7s).
+            This method suits for small data such as telegrams, JSON data, text notes, passwords, etc. For larger
+            data, might use the stream overload. Rule of thumb: If the data could be stored three times in
+            the present memory, this method could be used.
+            </summary>
+            <param name="data">The UTF8 encoded string to encrypt.</param>
+            <param name="password">The password. Must consists of 6 chars or more.</param>
+            <returns>The base64 encoded and encrypted string. The string is ASCII encoding.</returns>
+        </member>
+        <member name="M:Encrypter.CryptoProcessor.DecryptString(System.String,System.String)">
+            <summary>
+            Decrypts an base64 encoded and encrypted string. Due to the necessary millions of SHA512 iterations,
+            the methods runs at least several seconds in the year 2020 (approx. 5-7s).
+            This method suits for small data such as telegrams, JSON data, text notes, passwords, etc. For larger
+            data, might use the stream overload. Rule of thumb: If the data could be stored three times in
+            the present memory, this method could be used.
+            </summary>
+            <param name="base64EncodedAndEncryptedData">The base64 encoded and AES encrypted string. This string must be ASCII encoded.</param>
+            <param name="password">The password. Must consists of 6 chars or more.</param>
+            <returns>The decrypted UTF8 encoded string.</returns>
+        </member>
+        <member name="M:Encrypter.Extensions.Encrypt(System.String,System.String)">
+            <summary>
+            Encrypts this string by means of AES. The result gets base64 encoded.
+            Due to the necessary millions of SHA512 iterations, the methods runs at least several seconds in the year 2020 (approx. 5-7s).
+            This method suits for small data such as telegrams, JSON data, text notes, passwords, etc. For larger
+            data, might use the stream overload. Rule of thumb: If the data could be stored three times in
+            the present memory, this method could be used.
+            </summary>
+            <param name="data">This UTF8 encoded string to encrypt.</param>
+            <param name="password">The password. Must consists of 6 chars or more.</param>
+            <returns>The base64 encoded and encrypted string. The string is ASCII encoding.</returns>
+        </member>
+        <member name="M:Encrypter.Extensions.Decrypt(System.String,System.String)">
+            <summary>
+            Decrypts an base64 encoded and encrypted string. Due to the necessary millions of SHA512 iterations,
+            the methods runs at least several seconds in the year 2020 (approx. 5-7s).
+            This method suits for small data such as telegrams, JSON data, text notes, passwords, etc. For larger
+            data, might use the stream overload. Rule of thumb: If the data could be stored three times in
+            the present memory, this method could be used.
+            </summary>
+            <param name="data">The base64 encoded and AES encrypted string. This string must be ASCII encoded.</param>
+            <param name="password">The password. Must consists of 6 chars or more.</param>
+            <returns>The decrypted UTF8 encoded string.</returns>
+        </member>
+    </members>
+</doc>
