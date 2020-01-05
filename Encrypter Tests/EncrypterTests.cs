@@ -128,5 +128,41 @@ namespace Encrypter_Tests
             var decryptedMessage = await encryptedData.Decrypt(password);
             Assert.That(decryptedMessage, Is.EqualTo(message));
         }
+
+        [Test]
+        public async Task TestUpgradedIterationsBehaviour()
+        {
+            var message = "This is a test with umlauts äüö.";
+            var password = "test password";
+            var previousIterations = 1_000;
+            var upgradedIterations = 1_000_000;
+
+            var previousEncryptedData = await CryptoProcessor.EncryptString(message, password, previousIterations);
+            var reEncryptedData = await CryptoProcessor.UpgradeIterations(previousEncryptedData, password, previousIterations, upgradedIterations);
+            Assert.That(previousEncryptedData, Is.Not.EqualTo(reEncryptedData));
+            
+            var decryptedMessage = await CryptoProcessor.DecryptString(reEncryptedData, password, upgradedIterations);
+            Assert.That(decryptedMessage, Is.EqualTo(message));
+
+            try
+            {
+                var decryptedMessage2 = await CryptoProcessor.DecryptString(reEncryptedData, password, previousIterations);
+                Assert.Fail("Should not be reached!");
+            }
+            catch (CryptographicException e)
+            {
+                Assert.That(true);
+            }
+
+            try
+            {
+                var decryptedMessage2 = await CryptoProcessor.DecryptString(previousEncryptedData, password, upgradedIterations);
+                Assert.Fail("Should not be reached!");
+            }
+            catch (CryptographicException e)
+            {
+                Assert.That(true);
+            }
+        }
     }
 }

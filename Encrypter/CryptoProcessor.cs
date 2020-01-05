@@ -9,7 +9,10 @@ namespace Encrypter
 {
     public static class CryptoProcessor
     {
-        private const int ITERATIONS = 6_000_000;
+        /// <summary>
+        /// The number of iterations for the year 2020.
+        /// </summary>
+        public const int ITERATIONS_YEAR_2020 = 6_000_000;
 
         /// <summary>
         /// Encrypts a string by means of AES. The result gets base64 encoded.
@@ -20,8 +23,9 @@ namespace Encrypter
         /// </summary>
         /// <param name="data">The UTF8 encoded string to encrypt.</param>
         /// <param name="password">The password. Must consists of 6 chars or more.</param>
+        /// <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
         /// <returns>The base64 encoded and encrypted string. The string is ASCII encoding.</returns>
-        public static async Task<string> EncryptString(string data, string password)
+        public static async Task<string> EncryptString(string data, string password, int iterations = ITERATIONS_YEAR_2020)
         {
             if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
                 throw new CryptographicException("The password was empty or shorter than 6 characters.");
@@ -39,7 +43,7 @@ namespace Encrypter
             // The following operations take several seconds. Thus, using a task:
             await Task.Run(() =>
             {
-                using var keyVectorObj = new Rfc2898DeriveBytes(password, saltBytes, ITERATIONS, HashAlgorithmName.SHA512);
+                using var keyVectorObj = new Rfc2898DeriveBytes(password, saltBytes, iterations, HashAlgorithmName.SHA512);
                 key = keyVectorObj.GetBytes(32); // the max valid key length = 256 bit = 32 bytes
                 iv = keyVectorObj.GetBytes(16); // the only valid block size = 128 bit = 16 bytes
             });
@@ -93,8 +97,9 @@ namespace Encrypter
         /// </summary>
         /// <param name="base64EncodedAndEncryptedData">The base64 encoded and AES encrypted string. This string must be ASCII encoded.</param>
         /// <param name="password">The password. Must consists of 6 chars or more.</param>
+        /// <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
         /// <returns>The decrypted UTF8 encoded string.</returns>
-        public static async Task<string> DecryptString(string base64EncodedAndEncryptedData, string password)
+        public static async Task<string> DecryptString(string base64EncodedAndEncryptedData, string password, int iterations = ITERATIONS_YEAR_2020)
         {
             if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
                 throw new CryptographicException("The password was empty or shorter than 6 characters.");
@@ -121,7 +126,7 @@ namespace Encrypter
             // The following operations take several seconds. Thus, using a task:
             await Task.Run(() =>
             {
-                using var keyVectorObj = new Rfc2898DeriveBytes(password, saltBytes, ITERATIONS, HashAlgorithmName.SHA512);
+                using var keyVectorObj = new Rfc2898DeriveBytes(password, saltBytes, iterations, HashAlgorithmName.SHA512);
                 key = keyVectorObj.GetBytes(32); // the max valid key length = 256 bit = 32 bytes
                 iv = keyVectorObj.GetBytes(16); // the only valid block size = 128 bit = 16 bytes
             });
@@ -153,6 +158,23 @@ namespace Encrypter
             // Convert the decrypted data back into a string. Uses GetBuffer due to the advantage, that
             // it does not create another copy of the data. ToArray would create another copy of the data!
             return Encoding.UTF8.GetString(decryptedData.GetBuffer()[..(int)decryptedData.Length]);
+        }
+
+        /// <summary>
+        /// Upgrades the encryption regarding the used iterations for the key.
+        /// </summary>
+        /// <param name="encryptedDataBeforeUpgrade">The encrypted data with the previous settings.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="previousIterations">The previous number of iterations.</param>
+        /// <param name="upgradedIterations">The upgraded number of iterations.</param>
+        /// <returns>The re-encrypted data.</returns>
+        public static async Task<string> UpgradeIterations(string encryptedDataBeforeUpgrade, string password, int previousIterations, int upgradedIterations)
+        {
+            // Decrypt the data with the previous settings:
+            var decryptedData = await CryptoProcessor.DecryptString(encryptedDataBeforeUpgrade, password, previousIterations);
+
+            // Encrypt the data with the new settings:
+            return await CryptoProcessor.EncryptString(decryptedData, password, upgradedIterations);
         }
     }
 }

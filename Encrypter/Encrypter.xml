@@ -4,7 +4,12 @@
         <name>Encrypter</name>
     </assembly>
     <members>
-        <member name="M:Encrypter.CryptoProcessor.EncryptString(System.String,System.String)">
+        <member name="F:Encrypter.CryptoProcessor.ITERATIONS_YEAR_2020">
+            <summary>
+            The number of iterations for the year 2020.
+            </summary>
+        </member>
+        <member name="M:Encrypter.CryptoProcessor.EncryptString(System.String,System.String,System.Int32)">
             <summary>
             Encrypts a string by means of AES. The result gets base64 encoded.
             Due to the necessary millions of SHA512 iterations, the methods runs at least several seconds in the year 2020 (approx. 5-7s).
@@ -14,9 +19,10 @@
             </summary>
             <param name="data">The UTF8 encoded string to encrypt.</param>
             <param name="password">The password. Must consists of 6 chars or more.</param>
+            <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
             <returns>The base64 encoded and encrypted string. The string is ASCII encoding.</returns>
         </member>
-        <member name="M:Encrypter.CryptoProcessor.DecryptString(System.String,System.String)">
+        <member name="M:Encrypter.CryptoProcessor.DecryptString(System.String,System.String,System.Int32)">
             <summary>
             Decrypts an base64 encoded and encrypted string. Due to the necessary millions of SHA512 iterations,
             the methods runs at least several seconds in the year 2020 (approx. 5-7s).
@@ -26,7 +32,18 @@
             </summary>
             <param name="base64EncodedAndEncryptedData">The base64 encoded and AES encrypted string. This string must be ASCII encoded.</param>
             <param name="password">The password. Must consists of 6 chars or more.</param>
+            <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
             <returns>The decrypted UTF8 encoded string.</returns>
+        </member>
+        <member name="M:Encrypter.CryptoProcessor.UpgradeIterations(System.String,System.String,System.Int32,System.Int32)">
+            <summary>
+            Upgrades the encryption regarding the used iterations for the key.
+            </summary>
+            <param name="encryptedDataBeforeUpgrade">The encrypted data with the previous settings.</param>
+            <param name="password">The password.</param>
+            <param name="previousIterations">The previous number of iterations.</param>
+            <param name="upgradedIterations">The upgraded number of iterations.</param>
+            <returns>The re-encrypted data.</returns>
         </member>
         <member name="M:Encrypter.Extensions.Encrypt(System.String,System.String)">
             <summary>
