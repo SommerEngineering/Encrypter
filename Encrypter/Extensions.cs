@@ -21,7 +21,7 @@ namespace Encrypter
         /// <returns>The base64 encoded and encrypted string. The string is ASCII encoding.</returns>
         public static async Task<string> Encrypt(this string data, string password, int iterations = CryptoProcessor.ITERATIONS_YEAR_2020)
         {
-            return await CryptoProcessor.EncryptString(data, password, iterations);
+            return await CryptoProcessor.Encrypt(data, password, iterations);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Encrypter
         /// <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
         public static async Task Encrypt(this Stream inputStream, Stream outputStream, string password, int iterations = CryptoProcessor.ITERATIONS_YEAR_2020)
         {
-            await CryptoProcessor.EncryptStream(inputStream, outputStream, password, iterations);
+            await CryptoProcessor.Encrypt(inputStream, outputStream, password, iterations);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Encrypter
         /// <returns>The decrypted UTF8 encoded string.</returns>
         public static async Task<string> Decrypt(this string data, string password, int iterations = CryptoProcessor.ITERATIONS_YEAR_2020)
         {
-            return await CryptoProcessor.DecryptString(data, password, iterations);
+            return await CryptoProcessor.Decrypt(data, password, iterations);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Encrypter
         /// <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
         public static async Task Decrypt(this Stream inputStream, Stream outputStream, string password, int iterations = CryptoProcessor.ITERATIONS_YEAR_2020)
         {
-            await CryptoProcessor.DecryptStream(inputStream, outputStream, password, iterations);
+            await CryptoProcessor.Decrypt(inputStream, outputStream, password, iterations);
         }
     }
 }

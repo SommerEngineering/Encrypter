@@ -9,7 +9,7 @@
             The number of iterations for the year 2020.
             </summary>
         </member>
-        <member name="M:Encrypter.CryptoProcessor.EncryptString(System.String,System.String,System.Int32)">
+        <member name="M:Encrypter.CryptoProcessor.Encrypt(System.String,System.String,System.Int32)">
             <summary>
             Encrypts a string by means of AES. The result gets base64 encoded.
             Due to the necessary millions of SHA512 iterations, the methods runs at least several seconds in the year 2020 (approx. 5-7s).
@@ -22,7 +22,7 @@
             <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
             <returns>The base64 encoded and encrypted string. The string is ASCII encoding.</returns>
         </member>
-        <member name="M:Encrypter.CryptoProcessor.EncryptStream(System.IO.Stream,System.IO.Stream,System.String,System.Int32)">
+        <member name="M:Encrypter.CryptoProcessor.Encrypt(System.IO.Stream,System.IO.Stream,System.String,System.Int32)">
              <summary>
              Encrypts a given input stream and writes the encrypted data to the provided output stream. A buffer stream
              gets used in front of the output stream. This method expects, that both streams are read-to-use e.g. the
@@ -37,7 +37,7 @@
              <param name="password">The encryption password.</param>
              <param name="iterations">The desired number of iterations to create the key. Should not be adjusted. The default is secure for the current time.</param>
         </member>
-        <member name="M:Encrypter.CryptoProcessor.DecryptString(System.String,System.String,System.Int32)">
+        <member name="M:Encrypter.CryptoProcessor.Decrypt(System.String,System.String,System.Int32)">
             <summary>
             Decrypts an base64 encoded and encrypted string. Due to the necessary millions of SHA512 iterations,
             the methods runs at least several seconds in the year 2020 (approx. 5-7s).
@@ -50,7 +50,7 @@
             <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
             <returns>The decrypted UTF8 encoded string.</returns>
         </member>
-        <member name="M:Encrypter.CryptoProcessor.DecryptStream(System.IO.Stream,System.IO.Stream,System.String,System.Int32)">
+        <member name="M:Encrypter.CryptoProcessor.Decrypt(System.IO.Stream,System.IO.Stream,System.String,System.Int32)">
              <summary>
              Decrypts a given input stream and writes the decrypted data to the provided output stream. A buffer stream
              gets used in front of the output stream. This method expects, that both streams are read-to-use e.g. the

@@ -19,10 +19,10 @@ namespace Encrypter_Tests
             var message = "This is a test with umlauts äüö.";
             var password = "test password";
 
-            var encryptedData = await CryptoProcessor.EncryptString(message, password);
+            var encryptedData = await CryptoProcessor.Encrypt(message, password);
             Assert.That(encryptedData.Length, Is.AtLeast(message.Length)); // Note: Encrypted data contains salt as well!
 
-            var decryptedMessage = await CryptoProcessor.DecryptString(encryptedData, password);
+            var decryptedMessage = await CryptoProcessor.Decrypt(encryptedData, password);
             Assert.That(decryptedMessage, Is.EqualTo(message));
         }
 
@@ -32,8 +32,8 @@ namespace Encrypter_Tests
             var message = string.Empty;
             var password = "test password";
 
-            var encryptedData = await CryptoProcessor.EncryptString(message, password);
-            var decryptedMessage = await CryptoProcessor.DecryptString(encryptedData, password);
+            var encryptedData = await CryptoProcessor.Encrypt(message, password);
+            var decryptedMessage = await CryptoProcessor.Decrypt(encryptedData, password);
             Assert.That(decryptedMessage, Is.EqualTo(message));
         }
 
@@ -45,7 +45,7 @@ namespace Encrypter_Tests
 
             try
             {
-                var encryptedData = await CryptoProcessor.EncryptString(message, password);
+                var encryptedData = await CryptoProcessor.Encrypt(message, password);
                 Assert.Fail("Should not be reached!");
             }
             catch(CryptographicException e)
@@ -62,7 +62,7 @@ namespace Encrypter_Tests
 
             try
             {
-                var encryptedData = await CryptoProcessor.EncryptString(message, password);
+                var encryptedData = await CryptoProcessor.Encrypt(message, password);
                 Assert.Fail("Should not be reached!");
             }
             catch (CryptographicException e)
@@ -77,11 +77,11 @@ namespace Encrypter_Tests
             var message = "This is a test with umlauts äüö.";
             var password = "test password";
 
-            var encryptedData = await CryptoProcessor.EncryptString(message, password);
+            var encryptedData = await CryptoProcessor.Encrypt(message, password);
             
             try
             {
-                var decryptedMessage = await CryptoProcessor.DecryptString(encryptedData, password[..4]);
+                var decryptedMessage = await CryptoProcessor.Decrypt(encryptedData, password[..4]);
                 Assert.Fail("Should not be reached!");
             }
             catch (CryptographicException e)
@@ -96,8 +96,8 @@ namespace Encrypter_Tests
             var message = Encoding.ASCII.GetString(Encoding.Convert(Encoding.UTF8, Encoding.ASCII, Encoding.UTF8.GetBytes("This is a test without umlauts.")));
             var password = "test password";
 
-            var encryptedData = await CryptoProcessor.EncryptString(message, password);
-            var decryptedMessage = await CryptoProcessor.DecryptString(encryptedData, password);
+            var encryptedData = await CryptoProcessor.Encrypt(message, password);
+            var decryptedMessage = await CryptoProcessor.Decrypt(encryptedData, password);
             Assert.That(decryptedMessage, Is.EqualTo(message));
         }
 
@@ -108,11 +108,11 @@ namespace Encrypter_Tests
             var password1 = "password!";
             var password2 = "password.";
 
-            var encryptedData = await CryptoProcessor.EncryptString(message, password1);
+            var encryptedData = await CryptoProcessor.Encrypt(message, password1);
 
             try
             {
-                var decryptedMessage = await CryptoProcessor.DecryptString(encryptedData, password2);
+                var decryptedMessage = await CryptoProcessor.Decrypt(encryptedData, password2);
                 Assert.Fail("Should not be reached!");
             }
             catch (CryptographicException e)
@@ -140,16 +140,16 @@ namespace Encrypter_Tests
             var previousIterations = 1_000;
             var upgradedIterations = 1_000_000;
 
-            var previousEncryptedData = await CryptoProcessor.EncryptString(message, password, previousIterations);
+            var previousEncryptedData = await CryptoProcessor.Encrypt(message, password, previousIterations);
             var reEncryptedData = await CryptoProcessor.UpgradeIterations(previousEncryptedData, password, previousIterations, upgradedIterations);
             Assert.That(previousEncryptedData, Is.Not.EqualTo(reEncryptedData));
             
-            var decryptedMessage = await CryptoProcessor.DecryptString(reEncryptedData, password, upgradedIterations);
+            var decryptedMessage = await CryptoProcessor.Decrypt(reEncryptedData, password, upgradedIterations);
             Assert.That(decryptedMessage, Is.EqualTo(message));
 
             try
             {
-                var decryptedMessage2 = await CryptoProcessor.DecryptString(reEncryptedData, password, previousIterations);
+                var decryptedMessage2 = await CryptoProcessor.Decrypt(reEncryptedData, password, previousIterations);
                 Assert.Fail("Should not be reached!");
             }
             catch (CryptographicException e)
@@ -159,7 +159,7 @@ namespace Encrypter_Tests
 
             try
             {
-                var decryptedMessage2 = await CryptoProcessor.DecryptString(previousEncryptedData, password, upgradedIterations);
+                var decryptedMessage2 = await CryptoProcessor.Decrypt(previousEncryptedData, password, upgradedIterations);
                 Assert.Fail("Should not be reached!");
             }
             catch (CryptographicException e)
@@ -176,16 +176,16 @@ namespace Encrypter_Tests
             var newPassword = "test password!!!";
             var iterations = 1_000;
 
-            var previousEncryptedData = await CryptoProcessor.EncryptString(message, previousPassword, iterations);
+            var previousEncryptedData = await CryptoProcessor.Encrypt(message, previousPassword, iterations);
             var reEncryptedData = await CryptoProcessor.ChangePassword(previousEncryptedData, previousPassword, newPassword, iterations);
             Assert.That(previousEncryptedData, Is.Not.EqualTo(reEncryptedData));
 
-            var decryptedMessage = await CryptoProcessor.DecryptString(reEncryptedData, newPassword, iterations);
+            var decryptedMessage = await CryptoProcessor.Decrypt(reEncryptedData, newPassword, iterations);
             Assert.That(decryptedMessage, Is.EqualTo(message));
 
             try
             {
-                var decryptedMessage2 = await CryptoProcessor.DecryptString(reEncryptedData, previousPassword, iterations);
+                var decryptedMessage2 = await CryptoProcessor.Decrypt(reEncryptedData, previousPassword, iterations);
                 Assert.Fail("Should not be reached!");
             }
             catch (CryptographicException e)
@@ -195,7 +195,7 @@ namespace Encrypter_Tests
 
             try
             {
-                var decryptedMessage2 = await CryptoProcessor.DecryptString(previousEncryptedData, newPassword, iterations);
+                var decryptedMessage2 = await CryptoProcessor.Decrypt(previousEncryptedData, newPassword, iterations);
                 Assert.Fail("Should not be reached!");
             }
             catch (CryptographicException e)
@@ -216,8 +216,8 @@ namespace Encrypter_Tests
             try
             {
                 await File.WriteAllTextAsync(tempSourceFile, message);
-                await CryptoProcessor.EncryptStream(File.OpenRead(tempSourceFile), File.OpenWrite(tempDestFile), password);
-                await CryptoProcessor.DecryptStream(File.OpenRead(tempDestFile), File.OpenWrite(tempFinalFile), password);
+                await CryptoProcessor.Encrypt(File.OpenRead(tempSourceFile), File.OpenWrite(tempDestFile), password);
+                await CryptoProcessor.Decrypt(File.OpenRead(tempDestFile), File.OpenWrite(tempFinalFile), password);
 
                 Assert.That(File.Exists(tempDestFile), Is.True);
                 Assert.That(File.Exists(tempFinalFile), Is.True);
@@ -277,8 +277,8 @@ namespace Encrypter_Tests
                 var fileInfoSource = new FileInfo(tempSourceFile);
                 Assert.That(fileInfoSource.Length, Is.EqualTo(32_000_000_000));
 
-                await CryptoProcessor.EncryptStream(File.OpenRead(tempSourceFile), File.OpenWrite(tempDestFile), password);
-                await CryptoProcessor.DecryptStream(File.OpenRead(tempDestFile), File.OpenWrite(tempFinalFile), password);
+                await CryptoProcessor.Encrypt(File.OpenRead(tempSourceFile), File.OpenWrite(tempDestFile), password);
+                await CryptoProcessor.Decrypt(File.OpenRead(tempDestFile), File.OpenWrite(tempFinalFile), password);
 
                 Assert.That(File.Exists(tempDestFile), Is.True);
                 Assert.That(File.Exists(tempFinalFile), Is.True);

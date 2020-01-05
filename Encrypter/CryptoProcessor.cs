@@ -25,7 +25,7 @@ namespace Encrypter
         /// <param name="password">The password. Must consists of 6 chars or more.</param>
         /// <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
         /// <returns>The base64 encoded and encrypted string. The string is ASCII encoding.</returns>
-        public static async Task<string> EncryptString(string data, string password, int iterations = ITERATIONS_YEAR_2020)
+        public static async Task<string> Encrypt(string data, string password, int iterations = ITERATIONS_YEAR_2020)
         {
             if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
                 throw new CryptographicException("The password was empty or shorter than 6 characters.");
@@ -101,7 +101,7 @@ namespace Encrypter
         /// <param name="outputStream">The desired output stream. The encrypted data gets written to the current position.</param>
         /// <param name="password">The encryption password.</param>
         /// <param name="iterations">The desired number of iterations to create the key. Should not be adjusted. The default is secure for the current time.</param>
-        public static async Task EncryptStream(Stream inputStream, Stream outputStream, string password, int iterations = ITERATIONS_YEAR_2020)
+        public static async Task Encrypt(Stream inputStream, Stream outputStream, string password, int iterations = ITERATIONS_YEAR_2020)
         {
             if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
                 throw new CryptographicException("The password was empty or shorter than 6 characters.");
@@ -171,7 +171,7 @@ namespace Encrypter
         /// <param name="password">The password. Must consists of 6 chars or more.</param>
         /// <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
         /// <returns>The decrypted UTF8 encoded string.</returns>
-        public static async Task<string> DecryptString(string base64EncodedAndEncryptedData, string password, int iterations = ITERATIONS_YEAR_2020)
+        public static async Task<string> Decrypt(string base64EncodedAndEncryptedData, string password, int iterations = ITERATIONS_YEAR_2020)
         {
             if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
                 throw new CryptographicException("The password was empty or shorter than 6 characters.");
@@ -245,7 +245,7 @@ namespace Encrypter
         /// <param name="outputStream">The desired output stream. The decrypted data gets written to the current position.</param>
         /// <param name="password">The encryption password.</param>
         /// <param name="iterations">The desired number of iterations to create the key. Should not be adjusted. The default is secure for the current time.</param>
-        public static async Task DecryptStream(Stream inputStream, Stream outputStream, string password, int iterations = ITERATIONS_YEAR_2020)
+        public static async Task Decrypt(Stream inputStream, Stream outputStream, string password, int iterations = ITERATIONS_YEAR_2020)
         {
             if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
                 throw new CryptographicException("The password was empty or shorter than 6 characters.");
@@ -313,10 +313,10 @@ namespace Encrypter
         public static async Task<string> UpgradeIterations(string encryptedDataBeforeUpgrade, string password, int previousIterations, int upgradedIterations)
         {
             // Decrypt the data with the previous settings:
-            var decryptedData = await CryptoProcessor.DecryptString(encryptedDataBeforeUpgrade, password, previousIterations);
+            var decryptedData = await CryptoProcessor.Decrypt(encryptedDataBeforeUpgrade, password, previousIterations);
 
             // Encrypt the data with the new settings:
-            return await CryptoProcessor.EncryptString(decryptedData, password, upgradedIterations);
+            return await CryptoProcessor.Encrypt(decryptedData, password, upgradedIterations);
         }
 
         /// <summary>
@@ -330,10 +330,10 @@ namespace Encrypter
         public static async Task<string> ChangePassword(string encryptedDataBeforeChange, string previousPassword, string newPassword, int iterations = ITERATIONS_YEAR_2020)
         {
             // Decrypt the data with the previous settings:
-            var decryptedData = await CryptoProcessor.DecryptString(encryptedDataBeforeChange, previousPassword, iterations);
+            var decryptedData = await CryptoProcessor.Decrypt(encryptedDataBeforeChange, previousPassword, iterations);
 
             // Encrypt the data with the new settings:
-            return await CryptoProcessor.EncryptString(decryptedData, newPassword, iterations);
+            return await CryptoProcessor.Encrypt(decryptedData, newPassword, iterations);
         }
     }
 }
