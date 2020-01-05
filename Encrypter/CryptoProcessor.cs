@@ -89,6 +89,78 @@ namespace Encrypter
         }
 
         /// <summary>
+        /// Encrypts a given input stream and writes the encrypted data to the provided output stream. A buffer stream
+        /// gets used in front of the output stream. This method expects, that both streams are read-to-use e.g. the
+        /// input stream is at the desired position and the output stream is writable, etc. This method disposes the
+        /// internal crypto streams. Thus, the input and output streams might get disposed as well. Please note, that
+        /// this method writes binary data without e.g. base64 encoding.
+        ///
+        /// When the task finished, the entire encryption of the input stream is done.
+        /// </summary>
+        /// <param name="inputStream">The desired input stream. The encryption starts at the current position.</param>
+        /// <param name="outputStream">The desired output stream. The encrypted data gets written to the current position.</param>
+        /// <param name="password">The encryption password.</param>
+        /// <param name="iterations">The desired number of iterations to create the key. Should not be adjusted. The default is secure for the current time.</param>
+        public static async Task EncryptStream(Stream inputStream, Stream outputStream, string password, int iterations = ITERATIONS_YEAR_2020)
+        {
+            if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+                throw new CryptographicException("The password was empty or shorter than 6 characters.");
+
+            if (inputStream == null)
+                throw new CryptographicException("The input stream cannot be null.");
+
+            if (outputStream == null)
+                throw new CryptographicException("The output stream cannot be null.");
+
+            // Generate new random salt:
+            var saltBytes = Guid.NewGuid().ToByteArray();
+
+            // Derive key and iv vector:
+            var key = new byte[32];
+            var iv = new byte[16];
+
+            // The following operations take several seconds. Thus, using a task:
+            await Task.Run(() =>
+            {
+                using var keyVectorObj = new Rfc2898DeriveBytes(password, saltBytes, iterations, HashAlgorithmName.SHA512);
+                key = keyVectorObj.GetBytes(32); // the max valid key length = 256 bit = 32 bytes
+                iv = keyVectorObj.GetBytes(16); // the only valid block size = 128 bit = 16 bytes
+            });
+
+            // Create AES encryption:
+            using var aes = Aes.Create();
+            aes.Padding = PaddingMode.PKCS7;
+            aes.Key = key;
+            aes.IV = iv;
+
+            using var encryption = aes.CreateEncryptor();
+
+            // A buffer stream for the output:
+            await using var bufferOutputStream = new BufferedStream(outputStream, 65_536);
+
+            // Write the salt into the base64 stream:
+            await bufferOutputStream.WriteAsync(saltBytes);
+
+            // Create the encryption stream:
+            await using var cryptoStream = new CryptoStream(bufferOutputStream, encryption, CryptoStreamMode.Write);
+
+            // Write the payload into the encryption stream:
+            await inputStream.CopyToAsync(cryptoStream);
+
+            // Flush the final block. Please note, that it is not enough to call the regular flush method!
+            cryptoStream.FlushFinalBlock();
+
+            // Clears all sensitive information:
+            aes.Clear();
+            Array.Clear(key, 0, key.Length);
+            Array.Clear(iv, 0, iv.Length);
+            password = string.Empty;
+
+            // Waits for the buffer stream to finish:
+            await bufferOutputStream.FlushAsync();
+        }
+
+        /// <summary>
         /// Decrypts an base64 encoded and encrypted string. Due to the necessary millions of SHA512 iterations,
         /// the methods runs at least several seconds in the year 2020 (approx. 5-7s).
         /// This method suits for small data such as telegrams, JSON data, text notes, passwords, etc. For larger
@@ -158,6 +230,76 @@ namespace Encrypter
             // Convert the decrypted data back into a string. Uses GetBuffer due to the advantage, that
             // it does not create another copy of the data. ToArray would create another copy of the data!
             return Encoding.UTF8.GetString(decryptedData.GetBuffer()[..(int)decryptedData.Length]);
+        }
+
+        /// <summary>
+        /// Decrypts a given input stream and writes the decrypted data to the provided output stream. A buffer stream
+        /// gets used in front of the output stream. This method expects, that both streams are read-to-use e.g. the
+        /// input stream is at the desired position and the output stream is writable, etc. This method disposes the
+        /// internal crypto streams. Thus, the input and output streams might get disposed as well. Please note, that
+        /// this method writes binary data without e.g. base64 encoding.
+        ///
+        /// When the task finished, the entire decryption of the input stream is done.
+        /// </summary>
+        /// <param name="inputStream">The desired input stream. The decryption starts at the current position.</param>
+        /// <param name="outputStream">The desired output stream. The decrypted data gets written to the current position.</param>
+        /// <param name="password">The encryption password.</param>
+        /// <param name="iterations">The desired number of iterations to create the key. Should not be adjusted. The default is secure for the current time.</param>
+        public static async Task DecryptStream(Stream inputStream, Stream outputStream, string password, int iterations = ITERATIONS_YEAR_2020)
+        {
+            if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+                throw new CryptographicException("The password was empty or shorter than 6 characters.");
+
+            if (inputStream == null)
+                throw new CryptographicException("The input stream cannot be null.");
+
+            if (outputStream == null)
+                throw new CryptographicException("The output stream cannot be null.");
+
+            // A buffer for the salt's bytes:
+            var saltBytes = new byte[16]; // 16 bytes = Guid
+
+            // Read the salt's bytes out of the stream:
+            await inputStream.ReadAsync(saltBytes, 0, saltBytes.Length);
+
+            // Derive key and iv vector:
+            var key = new byte[32];
+            var iv = new byte[16];
+
+            // The following operations take several seconds. Thus, using a task:
+            await Task.Run(() =>
+            {
+                using var keyVectorObj = new Rfc2898DeriveBytes(password, saltBytes, iterations, HashAlgorithmName.SHA512);
+                key = keyVectorObj.GetBytes(32); // the max valid key length = 256 bit = 32 bytes
+                iv = keyVectorObj.GetBytes(16); // the only valid block size = 128 bit = 16 bytes
+            });
+
+            // Create AES decryption:
+            using var aes = Aes.Create();
+            aes.Padding = PaddingMode.PKCS7;
+            aes.Key = key;
+            aes.IV = iv;
+
+            using var decryption = aes.CreateDecryptor();
+
+            // The crypto stream:
+            await using var cryptoStream = new CryptoStream(inputStream, decryption, CryptoStreamMode.Read);
+
+            // Create a buffer stream in front of the output stream:
+            await using var bufferOutputStream = new BufferedStream(outputStream);
+
+            // Reads all remaining data trough the decrypt stream. Note, that this operation
+            // starts at the current position, i.e. after the salt bytes:
+            await cryptoStream.CopyToAsync(bufferOutputStream);
+
+            // Clears all sensitive information:
+            aes.Clear();
+            Array.Clear(key, 0, key.Length);
+            Array.Clear(iv, 0, iv.Length);
+            password = string.Empty;
+
+            // Waits for the buffer stream to finish:
+            await bufferOutputStream.FlushAsync();
         }
 
         /// <summary>

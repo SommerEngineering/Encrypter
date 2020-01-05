@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -198,6 +201,142 @@ namespace Encrypter_Tests
             catch (CryptographicException e)
             {
                 Assert.That(true);
+            }
+        }
+
+        [Test]
+        public async Task TestSimpleStream()
+        {
+            var message = "This is a test with umlauts äüö.";
+            var tempSourceFile = Path.GetTempFileName();
+            var tempDestFile = Path.GetTempFileName();
+            var tempFinalFile = Path.GetTempFileName();
+            var password = "test password";
+
+            try
+            {
+                await File.WriteAllTextAsync(tempSourceFile, message);
+                await CryptoProcessor.EncryptStream(File.OpenRead(tempSourceFile), File.OpenWrite(tempDestFile), password);
+                await CryptoProcessor.DecryptStream(File.OpenRead(tempDestFile), File.OpenWrite(tempFinalFile), password);
+
+                Assert.That(File.Exists(tempDestFile), Is.True);
+                Assert.That(File.Exists(tempFinalFile), Is.True);
+                Assert.That(File.ReadAllText(tempFinalFile), Is.EqualTo(message));
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(tempSourceFile);
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    File.Delete(tempDestFile);
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    File.Delete(tempFinalFile);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        [Test]
+        public async Task Test32GBStream()
+        {
+            var tempSourceFile = Path.GetTempFileName();
+            var tempDestFile = Path.GetTempFileName();
+            var tempFinalFile = Path.GetTempFileName();
+            var password = "test password";
+
+            try
+            {
+                // Write 32 GB random data:
+                await using (var stream = File.OpenWrite(tempSourceFile))
+                {
+                    var rnd = new Random();
+                    var buffer = new byte[512_000];
+                    var iterations = 32_000_000_000 / buffer.Length;
+                    for(var n=0; n < iterations; n++)
+                    {
+                        rnd.NextBytes(buffer);
+                        await stream.WriteAsync(buffer);
+                    }
+                }
+
+                var fileInfoSource = new FileInfo(tempSourceFile);
+                Assert.That(fileInfoSource.Length, Is.EqualTo(32_000_000_000));
+
+                await CryptoProcessor.EncryptStream(File.OpenRead(tempSourceFile), File.OpenWrite(tempDestFile), password);
+                await CryptoProcessor.DecryptStream(File.OpenRead(tempDestFile), File.OpenWrite(tempFinalFile), password);
+
+                Assert.That(File.Exists(tempDestFile), Is.True);
+                Assert.That(File.Exists(tempFinalFile), Is.True);
+
+                var fileInfoEncrypted = new FileInfo(tempDestFile);
+                var fileInfoFinal = new FileInfo(tempFinalFile);
+
+                Assert.That(fileInfoEncrypted.Length, Is.GreaterThan(32_000_000_000));
+                Assert.That(fileInfoFinal.Length, Is.EqualTo(fileInfoSource.Length));
+
+                var identical = true;
+                await using (var sourceStream = File.OpenRead(tempSourceFile))
+                {
+                    await using var finalStream = File.OpenRead(tempFinalFile);
+
+                    var bufferSource = new byte[512_000];
+                    var bufferFinal = new byte[512_000];
+                    var iterations = 32_000_000_000 / bufferSource.Length;
+                    for (var n = 0; n < iterations; n++)
+                    {
+                        await sourceStream.ReadAsync(bufferSource, 0, bufferSource.Length);
+                        await finalStream.ReadAsync(bufferFinal, 0, bufferFinal.Length);
+
+                        if (!bufferSource.SequenceEqual(bufferFinal))
+                        {
+                            identical = false;
+                            break;
+                        }
+                    }
+                }
+
+                Assert.That(identical, Is.True);
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(tempSourceFile);
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    File.Delete(tempDestFile);
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    File.Delete(tempFinalFile);
+                }
+                catch
+                {
+                }
             }
         }
     }
