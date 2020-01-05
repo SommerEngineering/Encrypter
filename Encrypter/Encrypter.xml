@@ -75,6 +75,17 @@
             <param name="upgradedIterations">The upgraded number of iterations.</param>
             <returns>The re-encrypted data.</returns>
         </member>
+        <member name="M:Encrypter.CryptoProcessor.UpgradeIterations(System.IO.Stream,System.IO.Stream,System.String,System.Int32,System.Int32)">
+            <summary>
+            Upgrades the encryption regarding the used iterations for the key. In order to re-encrypt the stream, a temporary file
+            gets used. When the returned task is finished, the re-encryption is done as well.
+            </summary>
+            <param name="inputStreamBeforeUpgrade">The encrypted data with the previous settings.</param>
+            <param name="outputStreamUpgraded">The re-encrypted data.</param>
+            <param name="password">The password.</param>
+            <param name="previousIterations">The previous number of iterations.</param>
+            <param name="upgradedIterations">The upgraded number of iterations.</param>
+        </member>
         <member name="M:Encrypter.CryptoProcessor.ChangePassword(System.String,System.String,System.String,System.Int32)">
             <summary>
             Changes the password of the encryption.

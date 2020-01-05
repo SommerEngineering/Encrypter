@@ -320,6 +320,45 @@ namespace Encrypter
         }
 
         /// <summary>
+        /// Upgrades the encryption regarding the used iterations for the key. In order to re-encrypt the stream, a temporary file
+        /// gets used. When the returned task is finished, the re-encryption is done as well.
+        /// </summary>
+        /// <param name="inputStreamBeforeUpgrade">The encrypted data with the previous settings.</param>
+        /// <param name="outputStreamUpgraded">The re-encrypted data.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="previousIterations">The previous number of iterations.</param>
+        /// <param name="upgradedIterations">The upgraded number of iterations.</param>
+        public static async Task UpgradeIterations(Stream inputStreamBeforeUpgrade, Stream outputStreamUpgraded, string password, int previousIterations, int upgradedIterations)
+        {
+            var tempFileCache = Path.GetTempFileName();
+
+            try
+            {
+                await using (var tempCacheStream = File.OpenWrite(tempFileCache))
+                {
+                    // Decrypt the data with the previous settings:
+                    await Decrypt(inputStreamBeforeUpgrade, tempCacheStream, password, previousIterations);
+                }
+
+                await using (var tempCacheStream = File.OpenRead(tempFileCache))
+                {
+                    // Encrypt the data with the new settings:
+                    await Encrypt(tempCacheStream, outputStreamUpgraded, password, upgradedIterations);
+                }
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(tempFileCache);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        /// <summary>
         /// Changes the password of the encryption.
         /// </summary>
         /// <param name="encryptedDataBeforeChange">With the previous password encrypted data.</param>
