@@ -17,10 +17,11 @@ namespace Encrypter
         /// </summary>
         /// <param name="data">This UTF8 encoded string to encrypt.</param>
         /// <param name="password">The password. Must consists of 6 chars or more.</param>
+        /// <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
         /// <returns>The base64 encoded and encrypted string. The string is ASCII encoding.</returns>
-        public static async Task<string> Encrypt(this string data, string password)
+        public static async Task<string> Encrypt(this string data, string password, int iterations = CryptoProcessor.ITERATIONS_YEAR_2020)
         {
-            return await CryptoProcessor.EncryptString(data, password);
+            return await CryptoProcessor.EncryptString(data, password, iterations);
         }
 
         /// <summary>
@@ -35,9 +36,10 @@ namespace Encrypter
         /// <param name="inputStream">The desired input stream. The encryption starts at the current position.</param>
         /// <param name="outputStream">The desired output stream. The encrypted data gets written to the current position.</param>
         /// <param name="password">The encryption password.</param>
-        public static async Task Encrypt(this Stream inputStream, Stream outputStream, string password)
+        /// <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
+        public static async Task Encrypt(this Stream inputStream, Stream outputStream, string password, int iterations = CryptoProcessor.ITERATIONS_YEAR_2020)
         {
-            await CryptoProcessor.EncryptStream(inputStream, outputStream, password);
+            await CryptoProcessor.EncryptStream(inputStream, outputStream, password, iterations);
         }
 
         /// <summary>
@@ -49,10 +51,11 @@ namespace Encrypter
         /// </summary>
         /// <param name="data">The base64 encoded and AES encrypted string. This string must be ASCII encoded.</param>
         /// <param name="password">The password. Must consists of 6 chars or more.</param>
+        /// <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
         /// <returns>The decrypted UTF8 encoded string.</returns>
-        public static async Task<string> Decrypt(this string data, string password)
+        public static async Task<string> Decrypt(this string data, string password, int iterations = CryptoProcessor.ITERATIONS_YEAR_2020)
         {
-            return await CryptoProcessor.DecryptString(data, password);
+            return await CryptoProcessor.DecryptString(data, password, iterations);
         }
 
         /// <summary>
@@ -67,9 +70,10 @@ namespace Encrypter
         /// <param name="inputStream">The desired input stream. The decryption starts at the current position.</param>
         /// <param name="outputStream">The desired output stream. The decrypted data gets written to the current position.</param>
         /// <param name="password">The encryption password.</param>
-        public static async Task Decrypt(this Stream inputStream, Stream outputStream, string password)
+        /// <param name="iterations">The number of iterations to derive the key. Should not be adjusted. The default is secure for the current time.</param>
+        public static async Task Decrypt(this Stream inputStream, Stream outputStream, string password, int iterations = CryptoProcessor.ITERATIONS_YEAR_2020)
         {
-            await CryptoProcessor.DecryptStream(inputStream, outputStream, password);
+            await CryptoProcessor.DecryptStream(inputStream, outputStream, password, iterations);
         }
     }
 }
