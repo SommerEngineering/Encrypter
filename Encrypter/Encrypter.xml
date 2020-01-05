@@ -45,6 +45,16 @@
             <param name="upgradedIterations">The upgraded number of iterations.</param>
             <returns>The re-encrypted data.</returns>
         </member>
+        <member name="M:Encrypter.CryptoProcessor.ChangePassword(System.String,System.String,System.String,System.Int32)">
+            <summary>
+            Changes the password of the encryption.
+            </summary>
+            <param name="encryptedDataBeforeChange">With the previous password encrypted data.</param>
+            <param name="previousPassword">The previous password.</param>
+            <param name="newPassword">The new password.</param>
+            <param name="iterations">The used iterations.</param>
+            <returns>The re-encrypted data.</returns>
+        </member>
         <member name="M:Encrypter.Extensions.Encrypt(System.String,System.String)">
             <summary>
             Encrypts this string by means of AES. The result gets base64 encoded.

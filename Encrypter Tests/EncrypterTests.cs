@@ -99,7 +99,7 @@ namespace Encrypter_Tests
         }
 
         [Test]
-        public async Task TestChangedPassword()
+        public async Task TestAlteredPassword()
         {
             var message = "This is a test with umlauts äüö.";
             var password1 = "password!";
@@ -157,6 +157,42 @@ namespace Encrypter_Tests
             try
             {
                 var decryptedMessage2 = await CryptoProcessor.DecryptString(previousEncryptedData, password, upgradedIterations);
+                Assert.Fail("Should not be reached!");
+            }
+            catch (CryptographicException e)
+            {
+                Assert.That(true);
+            }
+        }
+
+        [Test]
+        public async Task TestChangedPasswordBehaviour()
+        {
+            var message = "This is a test with umlauts äüö.";
+            var previousPassword = "test password";
+            var newPassword = "test password!!!";
+            var iterations = 1_000;
+
+            var previousEncryptedData = await CryptoProcessor.EncryptString(message, previousPassword, iterations);
+            var reEncryptedData = await CryptoProcessor.ChangePassword(previousEncryptedData, previousPassword, newPassword, iterations);
+            Assert.That(previousEncryptedData, Is.Not.EqualTo(reEncryptedData));
+
+            var decryptedMessage = await CryptoProcessor.DecryptString(reEncryptedData, newPassword, iterations);
+            Assert.That(decryptedMessage, Is.EqualTo(message));
+
+            try
+            {
+                var decryptedMessage2 = await CryptoProcessor.DecryptString(reEncryptedData, previousPassword, iterations);
+                Assert.Fail("Should not be reached!");
+            }
+            catch (CryptographicException e)
+            {
+                Assert.That(true);
+            }
+
+            try
+            {
+                var decryptedMessage2 = await CryptoProcessor.DecryptString(previousEncryptedData, newPassword, iterations);
                 Assert.Fail("Should not be reached!");
             }
             catch (CryptographicException e)

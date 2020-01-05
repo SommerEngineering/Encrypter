@@ -176,5 +176,22 @@ namespace Encrypter
             // Encrypt the data with the new settings:
             return await CryptoProcessor.EncryptString(decryptedData, password, upgradedIterations);
         }
+
+        /// <summary>
+        /// Changes the password of the encryption.
+        /// </summary>
+        /// <param name="encryptedDataBeforeChange">With the previous password encrypted data.</param>
+        /// <param name="previousPassword">The previous password.</param>
+        /// <param name="newPassword">The new password.</param>
+        /// <param name="iterations">The used iterations.</param>
+        /// <returns>The re-encrypted data.</returns>
+        public static async Task<string> ChangePassword(string encryptedDataBeforeChange, string previousPassword, string newPassword, int iterations = ITERATIONS_YEAR_2020)
+        {
+            // Decrypt the data with the previous settings:
+            var decryptedData = await CryptoProcessor.DecryptString(encryptedDataBeforeChange, previousPassword, iterations);
+
+            // Encrypt the data with the new settings:
+            return await CryptoProcessor.EncryptString(decryptedData, newPassword, iterations);
+        }
     }
 }
