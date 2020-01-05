@@ -280,6 +280,93 @@ namespace Encrypter_Tests
         }
 
         [Test]
+        public async Task TestChangedPasswordBehaviourStreaming()
+        {
+            var tempFileInput = Path.GetTempFileName();
+            var tempFileEncryptedPrevious = Path.GetTempFileName();
+            var tempFileReEncrypted = Path.GetTempFileName();
+            var tempFileDecrypted = Path.GetTempFileName();
+
+            try
+            {
+                var message = "This is a test with umlauts äüö.";
+                await File.WriteAllTextAsync(tempFileInput, message);
+
+                var passwordPrevious = "test password";
+                var passwordNext = "better password";
+                var iterations = 1_000;
+
+                await using (var outputStream = File.OpenWrite(tempFileEncryptedPrevious))
+                {
+                    await using var inputStream = File.OpenRead(tempFileInput);
+                    await CryptoProcessor.Encrypt(inputStream, outputStream, passwordPrevious, iterations);
+                }
+
+                await using (var outputStream = File.OpenWrite(tempFileReEncrypted))
+                {
+                    await using var inputStream = File.OpenRead(tempFileEncryptedPrevious);
+                    await CryptoProcessor.ChangePassword(inputStream, outputStream, passwordPrevious, passwordNext, iterations);
+                }
+
+                Assert.That(await File.ReadAllBytesAsync(tempFileEncryptedPrevious), Is.Not.EqualTo(await File.ReadAllBytesAsync(tempFileReEncrypted)));
+
+                await using (var outputStream = File.OpenWrite(tempFileDecrypted))
+                {
+                    await using var inputStream = File.OpenRead(tempFileReEncrypted);
+                    await CryptoProcessor.Decrypt(inputStream, outputStream, passwordNext, iterations);
+                }
+
+                Assert.That(await File.ReadAllTextAsync(tempFileDecrypted), Is.EqualTo(message));
+
+                try
+                {
+                    await using var tempBuffer = new MemoryStream();
+                    await using var inputStream = File.OpenRead(tempFileReEncrypted);
+                    await CryptoProcessor.Decrypt(inputStream, tempBuffer, passwordPrevious, iterations);
+                    Assert.Fail("Should not be reached!");
+                }
+                catch (CryptographicException e)
+                {
+                    Assert.That(true);
+                }
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(tempFileInput);
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    File.Delete(tempFileDecrypted);
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    File.Delete(tempFileEncryptedPrevious);
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    File.Delete(tempFileReEncrypted);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        [Test]
         public async Task TestSimpleStream()
         {
             var message = "This is a test with umlauts äüö.";

@@ -374,5 +374,44 @@ namespace Encrypter
             // Encrypt the data with the new settings:
             return await CryptoProcessor.Encrypt(decryptedData, newPassword, iterations);
         }
+
+        /// <summary>
+        /// Changes the password of the encryption. In order to re-encrypt the stream, a temporary file
+        /// gets used. When the returned task is finished, the re-encryption is done as well.
+        /// </summary>
+        /// <param name="encryptedInput">With the previous password encrypted data.</param>
+        /// <param name="reEncryptedOutput">The re-encrypted data.</param>
+        /// <param name="previousPassword">The previous password.</param>
+        /// <param name="newPassword">The new password.</param>
+        /// <param name="iterations">The used iterations.</param>
+        public static async Task ChangePassword(Stream encryptedInput, Stream reEncryptedOutput, string previousPassword, string newPassword, int iterations = ITERATIONS_YEAR_2020)
+        {
+            var tempFileCache = Path.GetTempFileName();
+
+            try
+            {
+                await using (var tempCacheStream = File.OpenWrite(tempFileCache))
+                {
+                    // Decrypt the data with the previous settings:
+                    await Decrypt(encryptedInput, tempCacheStream, previousPassword, iterations);
+                }
+
+                await using (var tempCacheStream = File.OpenRead(tempFileCache))
+                {
+                    // Encrypt the data with the new settings:
+                    await Encrypt(tempCacheStream, reEncryptedOutput, newPassword, iterations);
+                }
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(tempFileCache);
+                }
+                catch
+                {
+                }
+            }
+        }
     }
 }

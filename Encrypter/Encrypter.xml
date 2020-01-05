@@ -96,6 +96,17 @@
             <param name="iterations">The used iterations.</param>
             <returns>The re-encrypted data.</returns>
         </member>
+        <member name="M:Encrypter.CryptoProcessor.ChangePassword(System.IO.Stream,System.IO.Stream,System.String,System.String,System.Int32)">
+            <summary>
+            Changes the password of the encryption. In order to re-encrypt the stream, a temporary file
+            gets used. When the returned task is finished, the re-encryption is done as well.
+            </summary>
+            <param name="encryptedInput">With the previous password encrypted data.</param>
+            <param name="reEncryptedOutput">The re-encrypted data.</param>
+            <param name="previousPassword">The previous password.</param>
+            <param name="newPassword">The new password.</param>
+            <param name="iterations">The used iterations.</param>
+        </member>
         <member name="M:Encrypter.Extensions.Encrypt(System.String,System.String,System.Int32)">
             <summary>
             Encrypts this string by means of AES. The result gets base64 encoded.
