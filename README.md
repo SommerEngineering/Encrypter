@@ -18,7 +18,7 @@ This library contains test cases for the most important functions to ensure func
 # Citation
 The library can also be cited in scientific works, for example as follows:
 
-*Sommer, Thorsten (2020): Encrypter. Github: https://github.com/SommerEngineering/Encrypter, DOI: [doi.org/10.5281/zenodo.3601357](https://doi.org/10.5281/zenodo.3601357)*
+*Sommer, Thorsten (2020): Encrypter. Github: https://github.com/SommerEngineering/Encrypter, DOI: [doi.org/10.5281/zenodo.3604354](https://doi.org/10.5281/zenodo.3604354)*
 
 # License
 This library uses the BSD 3-clause license.
