@@ -53,6 +53,7 @@ namespace Encrypter
             aes.Padding = PaddingMode.PKCS7;
             aes.Key = key;
             aes.IV = iv;
+            aes.Mode = CipherMode.CBC;
 
             using var encryption = aes.CreateEncryptor();
 
@@ -132,6 +133,7 @@ namespace Encrypter
             aes.Padding = PaddingMode.PKCS7;
             aes.Key = key;
             aes.IV = iv;
+            aes.Mode = CipherMode.CBC;
 
             using var encryption = aes.CreateEncryptor();
 
